@@ -279,3 +279,16 @@ impl PointDatum<String, f32> for (String, isize) {
         String::new()
     }
 }
+impl PointDatum<f64, f64> for (f64, f64) {
+    fn get_x(&self) -> f64 {
+        self.0
+    }
+
+    fn get_y(&self) -> f64 {
+        self.1
+    }
+
+    fn get_key(&self) -> String {
+        String::new()
+    }
+}
