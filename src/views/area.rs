@@ -1,14 +1,14 @@
-use svg::node::Node;
-use svg::node::element::Group;
-use crate::components::scatter::{ScatterPoint, MarkerType, PointLabelPosition};
 use crate::colors::Color;
-use crate::Scale;
+use crate::components::area::AreaSeries;
+use crate::components::legend::{LegendEntry, LegendMarkerType};
+use crate::components::scatter::{MarkerType, PointLabelPosition, ScatterPoint};
+use crate::components::DatumRepresentation;
 use crate::views::datum::PointDatum;
 use crate::views::View;
-use crate::components::DatumRepresentation;
+use crate::Scale;
 use std::fmt::Display;
-use crate::components::legend::{LegendEntry, LegendMarkerType};
-use crate::components::area::AreaSeries;
+use svg::node::element::Group;
+use svg::node::Node;
 
 /// A View that represents data as a scatter plot.
 pub struct AreaSeriesView<'a, T: Display + Clone, U: Display + Clone> {
@@ -20,11 +20,11 @@ pub struct AreaSeriesView<'a, T: Display + Clone, U: Display + Clone> {
     x_scale: Option<&'a dyn Scale<T>>,
     y_scale: Option<&'a dyn Scale<U>>,
     custom_data_label: String,
+    legend_font_size: Option<usize>,
 }
 
-impl<'a, T: Display + Clone, U: Display + Clone> AreaSeriesView<'a, T, U> {
-    /// Create a new empty instance of the view.
-    pub fn new() -> Self {
+impl<'a, T: Display + Clone, U: Display + Clone> Default for AreaSeriesView<'a, T, U> {
+    fn default() -> Self {
         Self {
             labels_visible: true,
             label_position: PointLabelPosition::NW,
@@ -34,7 +34,15 @@ impl<'a, T: Display + Clone, U: Display + Clone> AreaSeriesView<'a, T, U> {
             x_scale: None,
             y_scale: None,
             custom_data_label: String::new(),
+            legend_font_size: None,
         }
+    }
+}
+
+impl<'a, T: Display + Clone, U: Display + Clone> AreaSeriesView<'a, T, U> {
+    /// Create a new empty instance of the view.
+    pub fn new() -> Self {
+        AreaSeriesView::default()
     }
 
     /// Set the scale for the X dimension.
@@ -82,15 +90,29 @@ impl<'a, T: Display + Clone, U: Display + Clone> AreaSeriesView<'a, T, U> {
         self
     }
 
+    /// Set a value for the legend font size
+    pub fn set_legend_font_size(mut self, size: usize) -> Self {
+        self.legend_font_size = Some(size);
+        self
+    }
+
     /// Load and process a dataset of BarDatum points.
-    pub fn load_data(mut self, data: &Vec<impl PointDatum<T, U>>) -> Result<Self, String> {
+    pub fn load_data(mut self, data: &[impl PointDatum<T, U>]) -> Result<Self, String> {
         match self.x_scale {
-            Some(_) => {},
-            _ => return Err("Please provide a scale for the X dimension before loading data".to_string()),
+            Some(_) => {}
+            _ => {
+                return Err(
+                    "Please provide a scale for the X dimension before loading data".to_string(),
+                )
+            }
         }
         match self.y_scale {
-            Some(_) => {},
-            _ => return Err("Please provide a scale for the Y dimension before loading data".to_string()),
+            Some(_) => {}
+            _ => {
+                return Err(
+                    "Please provide a scale for the Y dimension before loading data".to_string(),
+                )
+            }
         }
 
         // Compute corresponding offsets to apply in case there is a non-zero bandwidth.
@@ -109,11 +131,25 @@ impl<'a, T: Display + Clone, U: Display + Clone> AreaSeriesView<'a, T, U> {
             }
         };
 
-        let mut points = data.iter().map(|datum| {
-            let scaled_x = self.x_scale.unwrap().scale(&datum.get_x());
-            let scaled_y = self.y_scale.unwrap().scale(&datum.get_y());
-            ScatterPoint::new(scaled_x + x_bandwidth_offset, scaled_y + y_bandwidth_offset, self.marker_type, 5, datum.get_x(), datum.get_y(), self.label_position, self.labels_visible, true, self.colors[0].as_hex())
-        }).collect::<Vec<ScatterPoint<T, U>>>();
+        let mut points = data
+            .iter()
+            .map(|datum| {
+                let scaled_x = self.x_scale.unwrap().scale(&datum.get_x());
+                let scaled_y = self.y_scale.unwrap().scale(&datum.get_y());
+                ScatterPoint::new(
+                    scaled_x + x_bandwidth_offset,
+                    scaled_y + y_bandwidth_offset,
+                    self.marker_type,
+                    5,
+                    datum.get_x(),
+                    datum.get_y(),
+                    self.label_position,
+                    self.labels_visible,
+                    true,
+                    self.colors[0].as_hex(),
+                )
+            })
+            .collect::<Vec<ScatterPoint<T, U>>>();
 
         let y_origin = {
             if self.y_scale.unwrap().is_range_reversed() {
@@ -124,10 +160,33 @@ impl<'a, T: Display + Clone, U: Display + Clone> AreaSeriesView<'a, T, U> {
         };
         let first = data.first().unwrap();
         let last = data.last().unwrap();
-        points.push(ScatterPoint::new(self.x_scale.unwrap().scale(&last.get_x()) + x_bandwidth_offset, y_origin, self.marker_type, 5, data[0].get_x(), data[0].get_y(), self.label_position, false, false, "#fff".to_string()));
-        points.push(ScatterPoint::new(self.x_scale.unwrap().scale(&first.get_x()) + x_bandwidth_offset, y_origin, self.marker_type, 5, data[0].get_x(), data[0].get_y(), self.label_position, false, false, "#fff".to_string()));
+        points.push(ScatterPoint::new(
+            self.x_scale.unwrap().scale(&last.get_x()) + x_bandwidth_offset,
+            y_origin,
+            self.marker_type,
+            5,
+            data[0].get_x(),
+            data[0].get_y(),
+            self.label_position,
+            false,
+            false,
+            "#fff".to_string(),
+        ));
+        points.push(ScatterPoint::new(
+            self.x_scale.unwrap().scale(&first.get_x()) + x_bandwidth_offset,
+            y_origin,
+            self.marker_type,
+            5,
+            data[0].get_x(),
+            data[0].get_y(),
+            self.label_position,
+            false,
+            false,
+            "#fff".to_string(),
+        ));
 
-        self.entries.push(AreaSeries::new(points, self.colors[0].as_hex()));
+        self.entries
+            .push(AreaSeries::new(points, self.colors[0].as_hex()));
 
         Ok(self)
     }
@@ -153,7 +212,13 @@ impl<'a, T: Display + Clone, U: Display + Clone> View<'a> for AreaSeriesView<'a,
         // Area series currently does not support multiple keys per dataset,
         // hence when displaying a legend, it will display the custom data label
         // as the legend label.
-        entries.push(LegendEntry::new(LegendMarkerType::Square, self.colors[0].as_hex(), String::from("none"), self.custom_data_label.clone()));
+        entries.push(LegendEntry::new(
+            LegendMarkerType::Square,
+            self.colors[0].as_hex(),
+            String::from("none"),
+            self.custom_data_label.clone(),
+            self.legend_font_size,
+        ));
 
         entries
     }

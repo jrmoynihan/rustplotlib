@@ -1,19 +1,20 @@
-use std::collections::HashMap;
-use svg::node::Node;
-use svg::node::element::Group;
-use crate::components::bar::{Bar, BarBlock, BarLabelPosition};
-use crate::colors::Color;
-use crate::{Scale, BarDatum};
-use crate::scales::ScaleType;
-use crate::components::DatumRepresentation;
-use crate::views::View;
 use crate::chart::Orientation;
+use crate::colors::Color;
+use crate::components::bar::{Bar, BarBlock, BarLabelPosition};
 use crate::components::legend::{LegendEntry, LegendMarkerType};
+use crate::components::DatumRepresentation;
+use crate::scales::ScaleType;
+use crate::views::View;
+use crate::{BarDatum, Scale};
+use std::collections::HashMap;
+use svg::node::element::Group;
+use svg::node::Node;
 
 /// A View that represents data as horizontal bars.
 pub struct HorizontalBarView<'a> {
     label_position: BarLabelPosition,
     labels_visible: bool,
+    label_font_size: Option<usize>,
     rounding_precision: Option<usize>,
     entries: Vec<Bar>,
     keys: Vec<String>,
@@ -22,14 +23,15 @@ pub struct HorizontalBarView<'a> {
     x_scale: Option<&'a dyn Scale<f32>>,
     y_scale: Option<&'a dyn Scale<String>>,
     custom_data_label: String,
+    legend_font_size: Option<usize>,
 }
 
-impl<'a> HorizontalBarView<'a> {
-    /// Create a new empty instance of the view.
-    pub fn new() -> Self {
+impl<'a> Default for HorizontalBarView<'a> {
+    fn default() -> Self {
         Self {
             label_position: BarLabelPosition::EndOutside,
             labels_visible: true,
+            label_font_size: None,
             rounding_precision: None,
             entries: Vec::new(),
             keys: Vec::new(),
@@ -38,7 +40,15 @@ impl<'a> HorizontalBarView<'a> {
             x_scale: None,
             y_scale: None,
             custom_data_label: String::new(),
+            legend_font_size: None,
         }
+    }
+}
+
+impl<'a> HorizontalBarView<'a> {
+    /// Create a new empty instance of the view.
+    pub fn new() -> Self {
+        HorizontalBarView::default()
     }
 
     /// Set the scale for the X dimension.
@@ -92,19 +102,31 @@ impl<'a> HorizontalBarView<'a> {
         self
     }
 
+    /// Set a value for the legend font size
+    pub fn set_legend_font_size(mut self, size: usize) -> Self {
+        self.legend_font_size = Some(size);
+        self
+    }
+
+    /// Set a custom size for the bar labels
+    pub fn set_label_font_size(mut self, size: usize) -> Self {
+        self.label_font_size = Some(size);
+        self
+    }
+
     /// Load and process a dataset of BarDatum points.
-    pub fn load_data(mut self, data: &Vec<impl BarDatum>) -> Result<Self, String> {
+    pub fn load_data(mut self, data: &[impl BarDatum]) -> Result<Self, String> {
         match self.x_scale {
-            Some(scale) if scale.get_type() == ScaleType::Linear => {},
+            Some(scale) if scale.get_type() == ScaleType::Linear => {}
             _ => return Err("The X axis scale should be a Band scale.".to_string()),
         }
         match self.y_scale {
-            Some(scale) if scale.get_type() == ScaleType::Band => {},
+            Some(scale) if scale.get_type() == ScaleType::Band => {}
             _ => return Err("The Y axis scale should be a Linear scale.".to_string()),
         }
 
         // If no keys were explicitly provided, extract the keys from the data.
-        if self.keys.len() == 0 {
+        if self.keys.is_empty() {
             self.keys = Self::extract_keys(&data);
         }
 
@@ -116,7 +138,8 @@ impl<'a> HorizontalBarView<'a> {
         // should keep the order defined in the `keys` attribute.
         for (i, key) in self.keys.iter_mut().enumerate() {
             // Map the key to the corresponding color.
-            self.color_map.insert(key.clone(), self.colors[i % self.colors.len()].as_hex());
+            self.color_map
+                .insert(key.clone(), self.colors[i % self.colors.len()].as_hex());
 
             for entry in data.iter() {
                 if entry.get_key() == *key {
@@ -152,10 +175,25 @@ impl<'a> HorizontalBarView<'a> {
                     stacked_start = stacked_end;
                     stacked_end = self.x_scale.unwrap().scale(&value_acc);
                 }
-                bar_blocks.push(BarBlock::new(stacked_start, stacked_end, *value, self.color_map.get(*key).unwrap().clone()));
+                bar_blocks.push(BarBlock::new(
+                    stacked_start,
+                    stacked_end,
+                    *value,
+                    self.color_map.get(*key).unwrap().clone(),
+                ));
             }
 
-            let bar = Bar::new(bar_blocks, Orientation::Horizontal, category.to_string(), self.label_position, self.labels_visible, self.rounding_precision, self.y_scale.unwrap().bandwidth().unwrap(), self.y_scale.unwrap().scale(category));
+            let bar = Bar::new(
+                bar_blocks,
+                Orientation::Horizontal,
+                category.to_string(),
+                self.label_position,
+                self.labels_visible,
+                self.label_font_size,
+                self.rounding_precision,
+                self.y_scale.unwrap().bandwidth().unwrap(),
+                self.y_scale.unwrap().scale(category),
+            );
             bars.push(bar);
         }
 
@@ -167,13 +205,13 @@ impl<'a> HorizontalBarView<'a> {
     }
 
     /// Extract the list of keys to use when stacking and coloring the bars.
-    fn extract_keys(data: &Vec<impl BarDatum>) -> Vec<String> {
+    fn extract_keys(data: &[impl BarDatum]) -> Vec<String> {
         let mut keys = Vec::new();
         let mut map = HashMap::new();
 
         for datum in data.iter() {
             match map.insert(datum.get_key(), 0) {
-                Some(_) => {},
+                Some(_) => {}
                 None => keys.push(datum.get_key()),
             }
         }
@@ -207,11 +245,23 @@ impl<'a> View<'a> for HorizontalBarView<'a> {
         // If there is a single key and it is an empty string (meaning
         // the dataset consists only of X and Y dimension values), return
         // the custom data label.
-        if self.keys.len() == 1 && self.keys[0].len() == 0 {
-            entries.push(LegendEntry::new(LegendMarkerType::Square, self.color_map.get(&self.keys[0]).unwrap().clone(), String::from("none"), self.custom_data_label.clone()));
+        if self.keys.len() == 1 && self.keys[0].is_empty() {
+            entries.push(LegendEntry::new(
+                LegendMarkerType::Square,
+                self.color_map.get(&self.keys[0]).unwrap().clone(),
+                String::from("none"),
+                self.custom_data_label.clone(),
+                self.legend_font_size,
+            ));
         } else {
             for key in self.keys.iter() {
-                entries.push(LegendEntry::new(LegendMarkerType::Square, self.color_map.get(key).unwrap().clone(), String::from("none"), key.clone()));
+                entries.push(LegendEntry::new(
+                    LegendMarkerType::Square,
+                    self.color_map.get(key).unwrap().clone(),
+                    String::from("none"),
+                    key.clone(),
+                    self.legend_font_size,
+                ));
             }
         }
 

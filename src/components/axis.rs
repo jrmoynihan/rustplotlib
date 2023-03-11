@@ -41,20 +41,30 @@ pub struct AxisTick {
     label_rotation: isize,
     tick_offset: f32,
     label: String,
-    label_format: Option<String>
+    label_format: Option<String>,
+    label_font_size: String,
 }
 
 impl AxisTick {
     /// Create a new instance of AxisTick.
-    pub fn new(tick_offset: f32, label_offset: usize, label_rotation: isize, label: String, axis_position: AxisPosition) -> Self {
-        Self {
+    pub fn new(tick_offset: f32, label_offset: usize, label_rotation: isize, label: String, label_font_size_opt: Option<usize>, axis_position: AxisPosition) -> Self {
+        let label_font_size = "12px".to_owned();
+
+        let mut new_axis_tick = Self {
             label_offset,
             tick_offset,
             label_rotation,
             label,
             axis_position,
             label_format: None,
-        }
+            label_font_size,
+        };
+
+        if let Some(size) = label_font_size_opt {
+            new_axis_tick.set_label_font_size(size);
+        };
+
+        new_axis_tick
     }
 
     /// Set label rotation.
@@ -62,9 +72,14 @@ impl AxisTick {
         self.label_rotation = rotation;
     }
 
-    /// Set label rotation.
+    /// Set label format.
     pub fn set_label_format(&mut self, format: &str) {
         self.label_format = Some(format.to_owned());
+    }
+
+    /// Set label font size.
+    pub fn set_label_font_size(&mut self, size: usize) {
+        self.label_font_size = format!("{}px", size);
     }
 
     /// Render the axis tick to svg.
@@ -126,7 +141,7 @@ impl AxisTick {
             .set("y", tick_label_offset.1)
             .set("dy", ".35em")
             .set("text-anchor", tick_label_text_anchor)
-            .set("font-size", "12px")
+            .set("font-size", self.label_font_size.clone())
             .set("font-family", "sans-serif")
             .set("fill", "#777")
             .add(TextNode::new(formatted_label));
@@ -135,5 +150,46 @@ impl AxisTick {
         group.append(tick_label);
 
         Ok(group)
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn tick_label_font_size_test_default() {
+        let tick = AxisTick::new(16.0,
+            16,
+            0, "label".to_owned(),
+            None,
+            AxisPosition::Bottom);
+            
+            assert_eq!(tick.label_font_size, "12px");
+    }
+
+    #[test]
+    fn tick_label_font_size_test_updated() {
+        let mut tick = AxisTick::new(16.0,
+            16,
+            0, "label".to_owned(),
+            None,
+            AxisPosition::Bottom);
+
+        tick.set_label_font_size(20);
+
+        assert_eq!(tick.label_font_size, "20px");
+    }
+
+    #[test]
+    fn tick_label_font_size_test_explicit() {
+        let tick = AxisTick::new(16.0,
+            16,
+            0, "label".to_owned(),
+            Some(20),
+            AxisPosition::Bottom);
+
+        assert_eq!(tick.label_font_size, "20px");
+
     }
 }

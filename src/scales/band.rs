@@ -1,6 +1,6 @@
+use crate::scales::{Scale, ScaleType};
 use std::collections::HashMap;
 use std::collections::HashSet;
-use crate::scales::{Scale, ScaleType};
 
 /// The scale to represent categorical data.
 #[derive(Debug)]
@@ -31,9 +31,8 @@ pub struct ScaleBand {
     r1: f32,
 }
 
-impl ScaleBand {
-    /// Create a new band scale with default values.
-    pub fn new() -> Self {
+impl Default for ScaleBand {
+    fn default() -> Self {
         Self {
             domain: Vec::new(),
             range: vec![0, 1],
@@ -47,6 +46,13 @@ impl ScaleBand {
             r0: 0f32,
             r1: 0f32,
         }
+    }
+}
+
+impl ScaleBand {
+    /// Create a new band scale with default values.
+    pub fn new() -> Self {
+        ScaleBand::default()
     }
 
     /// Set the inner padding ratio.
@@ -157,6 +163,15 @@ impl Scale<String> for ScaleBand {
     /// Get the type of the scale.
     fn get_type(&self) -> ScaleType {
         ScaleType::Band
+    }
+
+    /// Get the domain of the scale.
+    fn get_domain(&self) -> Vec<String> {
+        self.domain().clone()
+    }
+
+    fn domain_max(&self) -> f32 {
+        0_f32
     }
 
     /// Get the range value for the given domain entry.

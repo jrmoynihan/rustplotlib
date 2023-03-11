@@ -1,5 +1,5 @@
-use std::cmp::{max, Ordering};
 use crate::scales::{Scale, ScaleType};
+use std::cmp::{max, Ordering};
 
 /// The scale to represent categorical data.
 #[derive(Debug)]
@@ -12,14 +12,20 @@ pub struct ScaleLinear {
     tick_count: usize,
 }
 
-impl ScaleLinear {
-    /// Create a new linear scale with default values.
-    pub fn new() -> Self {
+impl Default for ScaleLinear {
+    fn default() -> Self {
         Self {
             domain: Vec::new(),
             range: vec![0, 1],
             tick_count: 10,
         }
+    }
+}
+
+impl ScaleLinear {
+    /// Create a new linear scale with default values.
+    pub fn new() -> Self {
+        ScaleLinear::default()
     }
 
     /// Set the domain limits for the scale band.
@@ -47,7 +53,7 @@ impl ScaleLinear {
     /// Takes a value x in [a, b] and returns the corresponding value in [0, 1].
     fn normalize(&self, a: f32, b: f32, x: f32) -> f32 {
         // If a == b then return 0.5
-        if a == b {
+        if (a - b).abs() < f32::EPSILON {
             0.5
         } else {
             let b = b - a;
@@ -78,12 +84,10 @@ impl ScaleLinear {
             1
         };
 
-        let step = match power.cmp(&0) {
+        match power.cmp(&0) {
             Ordering::Less => -(10_f32.powi(-power)) / dynamic as f32,
             _ => dynamic as f32 * 10_f32.powi(power),
-        };
-
-        step
+        }
     }
 }
 
@@ -93,6 +97,15 @@ impl Scale<f32> for ScaleLinear {
         ScaleType::Linear
     }
 
+    fn get_domain(&self) -> Vec<f32> {
+        self.domain().clone()
+    }
+
+    /// Get the domain max of the scale.
+    fn domain_max(&self) -> f32 {
+        self.domain[1]
+    }
+
     /// Get the range value for the given domain entry.
     fn scale(&self, domain: &f32) -> f32 {
         let a = self.domain[0];
@@ -100,9 +113,8 @@ impl Scale<f32> for ScaleLinear {
         let normalized = self.normalize(a, b, *domain);
         let a = self.range[0] as f32;
         let b = self.range[1] as f32;
-        let scaled = self.interpolate(a, b, normalized);
 
-        scaled
+        self.interpolate(a, b, normalized)
     }
 
     /// Get the bandwidth (if present).
@@ -124,7 +136,7 @@ impl Scale<f32> for ScaleLinear {
     fn get_ticks(&self) -> Vec<f32> {
         let mut ticks = Vec::new();
 
-        if self.domain[0] == self.domain[1] && self.tick_count > 0 {
+        if (self.domain[0] - self.domain[1]).abs() < f32::EPSILON && self.tick_count > 0 {
             ticks.push(self.domain[0] as f32);
             return ticks;
         }

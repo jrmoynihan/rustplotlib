@@ -35,32 +35,48 @@ pub struct Bar {
     label_position: BarLabelPosition,
     rounding_precision: Option<usize>,
     label_visible: bool,
+    label_font_size: String,
     category: String,
     bar_width: f32,
     offset: f32,
 }
 
 impl Bar {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         blocks: Vec<BarBlock>,
         orientation: Orientation,
         category: String,
         label_position: BarLabelPosition,
         label_visible: bool,
+        label_new_font_size: Option<usize>,
         rounding_precision: Option<usize>,
         bar_width: f32,
         offset: f32
     ) -> Self {
-        Self {
+        let label_font_size = "14px".to_owned();
+        
+        let mut new_bar = Self {
             blocks,
             orientation,
             label_position,
             rounding_precision,
             label_visible,
+            label_font_size,
             category,
             bar_width,
             offset,
-        }
+        };
+
+        if let Some(size) = label_new_font_size {
+            new_bar.set_label_font_size(size)
+        };
+
+        new_bar
+    }
+
+    pub fn set_label_font_size(&mut self, size: usize) {
+        self.label_font_size = format!("{}px", size);
     }
 }
 
@@ -122,7 +138,7 @@ impl DatumRepresentation for Bar {
                     .set("dy", ".35em")
                     .set("font-family", "sans-serif")
                     .set("fill", "#333")
-                    .set("font-size", "14px")
+                    .set("font-size", self.label_font_size.clone())
                     .add(TextNode::new(label_text));
 
                 group.append(label);
