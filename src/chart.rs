@@ -514,8 +514,7 @@ impl<'a> Chart<'a> {
             let legend_entries = self
                 .views
                 .iter()
-                .map(|view| view.get_legend_entries())
-                .flatten()
+                .flat_map(|view| view.get_legend_entries())
                 .collect::<Vec<LegendEntry>>();
             let legend = Legend::new(legend_entries, width as usize);
             let mut legend_group = legend.to_svg()?;

@@ -128,7 +128,7 @@ impl<'a, T: Display, U: Display> LineSeriesView<'a, T, U> {
 
         // If no keys were explicitly provided, extract the keys from the data.
         if self.keys.is_empty() {
-            self.keys = Self::extract_keys(&data);
+            self.keys = Self::extract_keys(data);
         }
 
         // Organize entries based on the order of the keys first, since displayed data

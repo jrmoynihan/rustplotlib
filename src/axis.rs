@@ -120,7 +120,7 @@ impl Axis {
     }
 
     /// Compute the length of the axis.
-    fn get_axis_length<'a>(position: AxisPosition, chart: &Chart<'a>) -> isize {
+    fn get_axis_length(position: AxisPosition, chart: &Chart<'_>) -> isize {
         if position == AxisPosition::Top || position == AxisPosition::Bottom {
             chart.get_view_width()
         } else {
@@ -157,11 +157,9 @@ impl Axis {
     fn calculate_y_for_label(&self) -> i32 {
         match self.max_tick_length {
             TickLabel::Band(characters) => {
-                let calculated;
-
-                match self.tick_label_font_size {
-                    Some(font_size) => calculated = Axis::characters_to_px(characters, font_size),
-                    None => calculated = Axis::characters_to_px(characters, 12),
+                let calculated = match self.tick_label_font_size {
+                    Some(font_size) => Axis::characters_to_px(characters, font_size),
+                    None => Axis::characters_to_px(characters, 12),
                 };
 
                 match self.position {
@@ -172,12 +170,11 @@ impl Axis {
                 }
             }
             TickLabel::Linear(upper_bound) => {
-                let calculated;
                 let characters = format_num::format_num!(&self.label_format, upper_bound).len() + 2;
 
-                match self.tick_label_font_size {
-                    Some(font_size) => calculated = Axis::characters_to_px(characters, font_size),
-                    None => calculated = Axis::characters_to_px(characters, 12),
+                let calculated = match self.tick_label_font_size {
+                    Some(font_size) => Axis::characters_to_px(characters, font_size),
+                    None => Axis::characters_to_px(characters, 12),
                 };
 
                 match self.position {
@@ -290,7 +287,7 @@ impl Axis {
     }
 
     /// Generate the line that represents the axis.
-    fn get_axis_line<'a>(position: AxisPosition, chart: &Chart<'a>) -> AxisLine {
+    fn get_axis_line(position: AxisPosition, chart: &Chart<'_>) -> AxisLine {
         match position {
             AxisPosition::Top => AxisLine::new(0_f32, 0_f32, chart.get_view_width() as f32, 0_f32),
             AxisPosition::Right => {

@@ -57,7 +57,7 @@ impl ScaleLinear {
             0.5
         } else {
             let b = b - a;
-            (x - a as f32) / b as f32
+            (x - a) / b
         }
     }
 
@@ -134,26 +134,26 @@ impl Scale<f32> for ScaleLinear {
 
     /// Get the list of ticks that represent the scale on a chart axis.
     fn get_ticks(&self) -> Vec<f32> {
-        let mut ticks = Vec::new();
+        let mut ticks: Vec<f32> = Vec::new();
 
         if (self.domain[0] - self.domain[1]).abs() < f32::EPSILON && self.tick_count > 0 {
-            ticks.push(self.domain[0] as f32);
+            ticks.push(self.domain[0]);
             return ticks;
         }
 
-        let step = self.tick_step(self.domain[0] as f32, self.domain[1] as f32);
+        let step = self.tick_step(self.domain[0], self.domain[1]);
         let mut i = 0;
         if step > 0_f32 {
-            let start = (self.domain[0] as f32 / step).ceil();
-            let stop = (self.domain[1] as f32 / step).floor();
+            let start = (self.domain[0] / step).ceil();
+            let stop = (self.domain[1] / step).floor();
             let nr_of_ticks = (stop - start + 1_f32).ceil() as i32;
             while i < nr_of_ticks {
                 ticks.push((start + i as f32) * step);
                 i += 1;
             }
         } else {
-            let start = (self.domain[0] as f32 * step).floor();
-            let stop = (self.domain[1] as f32 * step).ceil();
+            let start = (self.domain[0] * step).floor();
+            let stop = (self.domain[1] * step).ceil();
             let nr_of_ticks = (start - stop + 1_f32).ceil() as i32;
             while i < nr_of_ticks {
                 ticks.push((start - i as f32) / step);

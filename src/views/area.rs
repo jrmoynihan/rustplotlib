@@ -207,18 +207,16 @@ impl<'a, T: Display + Clone, U: Display + Clone> View<'a> for AreaSeriesView<'a,
 
     /// Return the legend entries that this view represents.
     fn get_legend_entries(&self) -> Vec<LegendEntry> {
-        let mut entries = Vec::new();
-
         // Area series currently does not support multiple keys per dataset,
         // hence when displaying a legend, it will display the custom data label
         // as the legend label.
-        entries.push(LegendEntry::new(
+        let entries = vec![LegendEntry::new(
             LegendMarkerType::Square,
             self.colors[0].as_hex(),
             String::from("none"),
             self.custom_data_label.clone(),
             self.legend_font_size,
-        ));
+        )];
 
         entries
     }
