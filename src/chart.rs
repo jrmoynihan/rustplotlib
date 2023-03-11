@@ -1,7 +1,6 @@
 use std::string::ToString;
 use std::ffi::OsStr;
 use std::path::Path;
-use svg;
 use svg::node::element::Group;
 use svg::Node;
 use svg::node::Text as TextNode;
@@ -278,7 +277,7 @@ impl<'a> Chart<'a> {
             .set("class", "g-chart");
 
         // Add chart title
-        if self.title.len() > 0 {
+        if !self.title.is_empty() {
             let title_group = Group::new()
                 .set("class", "g-title")
                 .set("transform", format!("translate({},{})", self.width / 2, 25))
@@ -336,7 +335,7 @@ impl<'a> Chart<'a> {
             match legend_position {
                 AxisPosition::Top => {
                     let axis_height = {
-                        if self.title.len() > 0 {
+                        if !self.title.is_empty() {
                             45
                         } else {
                             10
