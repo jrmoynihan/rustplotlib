@@ -30,20 +30,34 @@ pub struct LegendEntry {
     color: String,
     stroke_type: String,
     label: String,
+    font_size: String,
 }
 
 impl LegendEntry {
     /// Create a new legend entry.
-    pub fn new(marker_type: LegendMarkerType, color: String, stroke_type: String, label: String) -> Self {
-        Self {
+    pub fn new(marker_type: LegendMarkerType, color: String, stroke_type: String, label: String, new_font_size: Option<usize>) -> Self {
+        let mut new_legend_entry = Self {
             marker_type,
             marker_size: 7,
             marker_to_label_gap: 6,
             color,
             stroke_type,
             label,
+            font_size: "12px".to_owned(),
+        };
+
+        if let Some(size) = new_font_size {
+            new_legend_entry.set_font_size(size);
         }
+
+        new_legend_entry
     }
+
+    /// Set the font size in pixels
+    pub fn set_font_size(&mut self, size: usize) {
+        self.font_size = format!("{}px",size);
+    }
+
 
     /// Return legend entry width to compute the placement of legend entries on the chart.
     pub fn get_width(&self) -> usize {
@@ -113,7 +127,7 @@ impl LegendEntry {
                 .set("dy", ".35em")
                 .set("font-family", "sans-serif")
                 .set("fill", "#777")
-                .set("font-size", "12px")
+                .set("font-size", self.font_size.clone())
                 .add(TextNode::new(self.label.clone()))
         );
 
