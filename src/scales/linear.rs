@@ -79,7 +79,7 @@ impl ScaleLinear {
         };
 
         let step = match power.cmp(&0) {
-            Ordering::Less => -10_f32.powi(-power) / dynamic as f32,
+            Ordering::Less => -(10_f32.powi(-power)) / dynamic as f32,
             _ => dynamic as f32 * 10_f32.powi(power),
         };
 
