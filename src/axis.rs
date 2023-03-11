@@ -143,6 +143,7 @@ impl Axis {
                 }
             }
             ScaleType::Linear => TickLabel::Linear(scale.domain_max()),
+            ScaleType::Logarithmic => TickLabel::Linear(scale.domain_max()),
 
             ScaleType::Ordinal => {
                 todo!();

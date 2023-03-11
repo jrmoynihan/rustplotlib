@@ -1,11 +1,13 @@
 pub mod band;
 pub mod linear;
+pub mod logarithmic;
 
 #[derive(PartialEq)]
 pub enum ScaleType {
     Band,
     Ordinal,
     Linear,
+    Logarithmic,
 }
 
 /// The Scale trait defines common operations on all scales.
