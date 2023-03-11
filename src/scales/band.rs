@@ -26,9 +26,9 @@ pub struct ScaleBand {
     /// the right part, leaving no space on the left.
     align: f32,
     /// The start value of the range.
-    r0: f32,
+    range_start: f32,
     /// The end value of the range.
-    r1: f32,
+    range_end: f32,
 }
 
 impl Default for ScaleBand {
@@ -43,8 +43,8 @@ impl Default for ScaleBand {
             padding_inner: 0.1,
             padding_outer: 0.1,
             align: 0.5,
-            r0: 0f32,
-            r1: 0f32,
+            range_start: 0f32,
+            range_end: 0f32,
         }
     }
 }
@@ -96,6 +96,8 @@ impl ScaleBand {
     /// Set the range limits for the scale band.
     pub fn set_range(mut self, range: Vec<isize>) -> Self {
         self.range = range;
+        self.range_start = self.range[0] as f32;
+        self.range_end = self.range[1] as f32;
         self.rescale();
         self
     }
@@ -156,6 +158,14 @@ impl ScaleBand {
         // Re-assign domains with any duplicates removed.
         self.domain.clear();
         self.domain = processed_domains;
+    }
+
+    pub fn range_start(&self) -> f32 {
+        self.range_start
+    }
+
+    pub fn range_end(&self) -> f32 {
+        self.range_end
     }
 }
 
