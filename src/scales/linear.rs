@@ -93,8 +93,8 @@ impl ScaleLinear {
 
 impl Scale<f32> for ScaleLinear {
     /// Get the type of the scale.
-    fn get_type(&self) -> ScaleType {
-        ScaleType::Linear(self.clone())
+    fn get_type(&self) -> String {
+        "linear".to_string()
     }
 
     fn get_domain(&self) -> Vec<f32> {

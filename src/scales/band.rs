@@ -171,8 +171,8 @@ impl ScaleBand {
 
 impl Scale<String> for ScaleBand {
     /// Get the type of the scale.
-    fn get_type(&self) -> ScaleType {
-        ScaleType::Band(self.clone())
+    fn get_type(&self) -> String {
+        "band".to_string()
     }
 
     /// Get the domain of the scale.

@@ -113,8 +113,8 @@ impl ScaleLogarithmic {
 
 impl Scale<f32> for ScaleLogarithmic {
     /// Get the type of the scale
-    fn get_type(&self) -> ScaleType {
-        ScaleType::Logarithmic(self.clone())
+    fn get_type(&self) -> String {
+        "logarithmic".to_string()
     }
     /// Get the domain of the scale
     fn get_domain(&self) -> Vec<f32> {

@@ -130,8 +130,8 @@ impl Axis {
 
     /// Calculate analogue for the length of the tick labels.
     fn calculate_max_tick_length<T: ToString>(scale: &dyn Scale<T>) -> TickLabel {
-        match scale.get_type() {
-            ScaleType::Band => {
+        match scale.get_type().as_str() {
+            "band" => {
                 match scale
                     .get_domain()
                     .into_iter()
@@ -142,15 +142,15 @@ impl Axis {
                     None => TickLabel::Band(0),
                 }
             }
-            ScaleType::Linear => TickLabel::Linear(scale.domain_max()),
-            ScaleType::Logarithmic => TickLabel::Linear(scale.domain_max()),
-
-            ScaleType::Ordinal => {
-                todo!();
-                // When ordinal scale type is implemented
-                #[allow(unreachable_code)]
-                TickLabel::Ordinal(0)
-            }
+            "linear" => TickLabel::Linear(scale.domain_max()),
+            "logarithmic" => TickLabel::Linear(scale.domain_max()),
+            &_ => TickLabel::Linear(0.0),
+            // ScaleType::Ordinal => {
+            //     todo!();
+            //     // When ordinal scale type is implemented
+            //     #[allow(unreachable_code)]
+            //     TickLabel::Ordinal(0)
+            // }
         }
     }
 
@@ -256,19 +256,19 @@ impl Axis {
 
         for tick in scale.get_ticks() {
             let tick_offset = match position {
-                AxisPosition::Bottom if scale.get_type() == ScaleType::Band => {
+                AxisPosition::Bottom if scale.get_type() == "band" => {
                     scale.scale(&tick) + scale.bandwidth().unwrap() / 2_f32
                 }
                 AxisPosition::Bottom => scale.scale(&tick),
-                AxisPosition::Left if scale.get_type() == ScaleType::Band => {
+                AxisPosition::Left if scale.get_type() == "band" => {
                     scale.scale(&tick) + scale.bandwidth().unwrap() / 2_f32
                 }
                 AxisPosition::Left => scale.scale(&tick),
-                AxisPosition::Top if scale.get_type() == ScaleType::Band => {
+                AxisPosition::Top if scale.get_type() == "band" => {
                     scale.scale(&tick) + scale.bandwidth().unwrap() / 2_f32
                 }
                 AxisPosition::Top => scale.scale(&tick),
-                AxisPosition::Right if scale.get_type() == ScaleType::Band => {
+                AxisPosition::Right if scale.get_type() == "band" => {
                     scale.scale(&tick) + scale.bandwidth().unwrap() / 2_f32
                 }
                 AxisPosition::Right => scale.scale(&tick),

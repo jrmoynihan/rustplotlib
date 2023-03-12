@@ -54,7 +54,7 @@ impl ScaleType {
 /// The Scale trait defines common operations on all scales.
 pub trait Scale<T> {
     /// Get the type of the scale.
-    fn get_type(&self) -> ScaleType;
+    fn get_type(&self) -> String;
 
     /// Get the domain of the scale.
     fn get_domain(&self) -> Vec<T>;

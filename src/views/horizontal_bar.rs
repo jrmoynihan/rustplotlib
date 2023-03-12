@@ -117,11 +117,11 @@ impl<'a> HorizontalBarView<'a> {
     /// Load and process a dataset of BarDatum points.
     pub fn load_data(mut self, data: &[impl BarDatum]) -> Result<Self, String> {
         match self.x_scale {
-            Some(scale) if scale.get_type() == ScaleType::Linear => {}
+            Some(scale) if scale.get_type() == "linear" => {}
             _ => return Err("The X axis scale should be a Band scale.".to_string()),
         }
         match self.y_scale {
-            Some(scale) if scale.get_type() == ScaleType::Band => {}
+            Some(scale) if scale.get_type() == "band" => {}
             _ => return Err("The Y axis scale should be a Linear scale.".to_string()),
         }
 
