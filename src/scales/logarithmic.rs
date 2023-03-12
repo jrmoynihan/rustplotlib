@@ -3,7 +3,7 @@ use crate::scales::{Scale, ScaleType};
 use std::cmp::{max, Ordering};
 
 /// The scale to represent logarithmic data.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ScaleLogarithmic {
     /// The domain limits of the dataset that the scale is going to represent.
     domain: Vec<f32>,
@@ -114,7 +114,7 @@ impl ScaleLogarithmic {
 impl Scale<f32> for ScaleLogarithmic {
     /// Get the type of the scale
     fn get_type(&self) -> ScaleType {
-        ScaleType::Logarithmic
+        ScaleType::Logarithmic(self.clone())
     }
     /// Get the domain of the scale
     fn get_domain(&self) -> Vec<f32> {

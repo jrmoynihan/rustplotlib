@@ -2,7 +2,7 @@ use crate::scales::{Scale, ScaleType};
 use std::cmp::{max, Ordering};
 
 /// The scale to represent linear data.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ScaleLinear {
     /// The domain limits of the dataset that the scale is going to represent.
     domain: Vec<f32>,
@@ -94,7 +94,7 @@ impl ScaleLinear {
 impl Scale<f32> for ScaleLinear {
     /// Get the type of the scale.
     fn get_type(&self) -> ScaleType {
-        ScaleType::Linear
+        ScaleType::Linear(self.clone())
     }
 
     fn get_domain(&self) -> Vec<f32> {

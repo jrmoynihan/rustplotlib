@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 
 /// The scale to represent categorical data.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ScaleBand {
     /// The domain limits of the dataset that the scale is going to represent.
     domain: Vec<String>,
@@ -172,7 +172,7 @@ impl ScaleBand {
 impl Scale<String> for ScaleBand {
     /// Get the type of the scale.
     fn get_type(&self) -> ScaleType {
-        ScaleType::Band
+        ScaleType::Band(self.clone())
     }
 
     /// Get the domain of the scale.
